@@ -41,3 +41,5 @@ Crycat.Services = setmetatable({}, {
 
 --Variable/s
 Crycat.Executor = select(1, getexecutorname())
+
+return Crycat
