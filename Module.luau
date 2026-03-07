@@ -4,7 +4,9 @@ Crycat.GithubPath = function(path: string)
 	return (string.gsub("https://raw.githubusercontent.com/AlethsTopics/Crycat/refs/heads/main/" .. path, " ", "%%20"))
 end
 
-Crycat.Discord = function(Code: string)
+Crycat.Discord = function(Code: string, SetClippy: boolean)
+	Invite = (Code or "fte5YfZyax")
+	--
 	request({
 		Url = "http://127.0.0.1:6463/rpc?v=1",
 		Method = "POST",
@@ -14,10 +16,14 @@ Crycat.Discord = function(Code: string)
 		},
 		Body = cloneref(game.HttpService):JSONEncode({
 		cmd = "INVITE_BROWSER",
-		args = { code = "fte5YfZyax" },
+		args = { code = Invite },
                 nonce = cloneref(game.HttpService):GenerateGUID(false)
             })
         })
+
+	if SetClippy then
+		setclipboard("https://discord.gg/" .. Invite)
+	end
 end
 
 --Tables
@@ -41,3 +47,5 @@ Crycat.Services = setmetatable({}, {
 
 --Variable/s
 Crycat.Executor = select(1, getexecutorname())
+
+--Crycat.Discord(nil, false)
