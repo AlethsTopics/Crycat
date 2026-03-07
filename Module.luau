@@ -48,4 +48,5 @@ Crycat.Services = setmetatable({}, {
 --Variable/s
 Crycat.Executor = select(1, getexecutorname())
 
---Crycat.Discord(nil, false)
+return Crycat
+
