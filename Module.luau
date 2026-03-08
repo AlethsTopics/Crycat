@@ -61,16 +61,16 @@ Crycat.Entities.List = {}
 
 --Entity Functions
 Crycat.Entities.Add = function(Entity: Instance)
-	table.insert(Crycat.Entities.List, Entity)
+    table.insert(Crycat.Entities.List, Entity)
 end
 
 Crycat.Entities.Remove = function(Entity: Instance)
-	for i, v in ipairs(Crycat.Entities.List) do
-		if v == Entity then
-			table.remove(Crycat.Entities.List, i)
-			break
-		end
-	end
+    for i, v in ipairs(Crycat.Entities.List) do
+        if v == Entity then
+            table.remove(Crycat.Entities.List, i)
+            break
+        end
+    end
 end
 
 Crycat.Entities.EntityAdded = function(Entity: Instance, IfStatement, ExpectedResultFromIfStatement)
@@ -88,4 +88,4 @@ end
 --Variable/s
 Crycat.Executor = select(1, getexecutorname())
 
-return Crycat
+getgenv().Crycat = Crycat
