@@ -7,19 +7,21 @@ end
 Crycat.Discord = function(Code: string, SetClippy: boolean)
 	local Invite = (Code or "fte5YfZyax")
 	--
-	pcall(request({
-		Url = "http://127.0.0.1:6463/rpc?v=1",
-		Method = "POST",
-		Headers = {
-			["Content-Type"] = "application/json",
-			["Origin"] = "https://discord.com"
-		},
-		Body = cloneref(game.HttpService):JSONEncode({
-		cmd = "INVITE_BROWSER",
-		args = { code = Invite },
-		nonce = cloneref(game.HttpService):GenerateGUID(false)
+	pcall(function()
+		request({
+			Url = "http://127.0.0.1:6463/rpc?v=1",
+			Method = "POST",
+			Headers = {
+				["Content-Type"] = "application/json",
+				["Origin"] = "https://discord.com"
+			},
+			Body = cloneref(game.HttpService):JSONEncode({
+			cmd = "INVITE_BROWSER",
+			args = { code = Invite },
+			nonce = cloneref(game.HttpService):GenerateGUID(false)
+			})
 		})
-	}))
+	end)
 
 	if SetClippy then
 		setclipboard("https://discord.gg/" .. Invite)
@@ -59,7 +61,6 @@ Crycat.Entities.List = {}
 
 --Entity Functions
 Crycat.Entities.Add = function(Entity: Instance)
-	print("added: " .. Entity.Name)
 	table.insert(Crycat.Entities.List, Entity)
 end
 
@@ -73,13 +74,13 @@ Crycat.Entities.Remove = function(Entity: Instance)
 end
 
 Crycat.Entities.EntityAdded = function(Entity: Instance, IfStatement, ExpectedResultFromIfStatement)
-	if IfStatement == ExpectedResultFromIfStatement or IfStatement == nil then
+	if IfStatement == ExpectedResultFromIfStatement or not IfStatement then
 		Crycat.Entities.Add(Entity)
 	end
 end
 
 Crycat.Entities.EntityRemoved = function(Entity: Instance, IfStatement, ExpectedResultFromIfStatement)
-	if IfStatement == ExpectedResultFromIfStatement or IfStatement == nil then
+	if IfStatement == ExpectedResultFromIfStatement or not IfStatement then
 		Crycat.Entities.Remove(Entity)
 	end
 end
