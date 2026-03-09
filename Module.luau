@@ -1,4 +1,29 @@
 local Crycat = {}
+--Functions
+Crycat.Functions = {}
+
+Crycat.Functions.getcustomasset = function(Path: string, backupId: number)
+	if not getcustomasset then
+		return "rbxassetid://" .. tostring(backupId)
+	end
+
+	local Time, Asset = tick(), getcustomasset(Path)
+	local Image = Instance.new("ImageLabel")
+	Image.Image = Asset
+	
+	
+	repeat task.wait() until Image.IsLoaded or tick() - Time >= 1
+	local Loaded = Image.IsLoaded
+	Image:Destroy()
+	
+	if Loaded then
+		return Asset
+	else
+		return "rbxassetid://" .. tostring(backupId)
+	end
+end
+
+
 --Quick Functions
 Crycat.GithubPath = function(path: string)
 	return (string.gsub("https://raw.githubusercontent.com/AlethsTopics/Crycat/refs/heads/main/" .. path, " ", "%%20"))
