@@ -63,6 +63,13 @@ Crycat.Games = {
 	},
 
 	[13761384151] = {
+		Name = "Quiet Game",
+		ScriptPath = Crycat.GithubPath("Quiet Game.luau"),
+		Version = 158,
+		UpdatedCheckRange = 1,
+	},
+
+	[12334109280] = {
 		Name = "Guts & Blackpowder",
 		ScriptPath = Crycat.GithubPath("Guts & Blackpowder.luau"),
 		Version = 158,
@@ -194,9 +201,9 @@ Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
 Crycat.IsGameSupported = function()
 	if Crycat.Games[game.PlaceId] then
 		return true, Crycat.Games[game.PlaceId].Name
+	else
+		return false, game.PlaceId
 	end
-
-	return false, game.PlaceId
 end
 
 getgenv().Crycat = Crycat
