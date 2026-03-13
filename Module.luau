@@ -1,5 +1,5 @@
 local Crycat = {}
-Crycat.Version = "0.3.1"
+Crycat.Version = "0.3.2"
 --Tables
 Crycat.UI = {}
 Crycat.Entities = {}
@@ -192,12 +192,11 @@ Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
 
 --Etc.
 Crycat.IsGameSupported = function()
-	for i, v in Crycat.Games do
-		if v == game.PlaceId then
-			return true, v
-		end
+	if Crycat.Games[game.PlaceId] then
+		return true, data
 	end
 
 	return false, game.PlaceId
 end
+
 getgenv().Crycat = Crycat
