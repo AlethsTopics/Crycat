@@ -193,7 +193,7 @@ Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
 --Etc.
 Crycat.IsGameSupported = function()
 	if Crycat.Games[game.PlaceId] then
-		return true, data
+		return true, Crycat.Games[game.PlaceId].Name
 	end
 
 	return false, game.PlaceId
