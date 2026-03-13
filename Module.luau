@@ -1,25 +1,25 @@
 local Crycat = {}
---Functions
+Crycat.Version = "0.3.1"
+--Tables
+Crycat.UI = {}
+Crycat.Entities = {}
 Crycat.Functions = {}
+Crycat.Entities.List = {}
 
-Crycat.Functions.getcustomasset = function(Path: string, backupId: number)
+--Functions
+Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
 	if not getcustomasset then
-		return "rbxassetid://" .. tostring(backupId)
+		return "rbxassetid://" .. tostring(BackupId)
 	end
 
-	local Time, Asset = tick(), getcustomasset(Path)
-	local Image = Instance.new("ImageLabel")
-	Image.Image = Asset
-	
-	
-	repeat task.wait() until Image.IsLoaded or tick() - Time >= 1
-	local Loaded = Image.IsLoaded
-	Image:Destroy()
-	
-	if Loaded then
-		return Asset
+	local success, asset = pcall(function()
+		return getcustomasset(Path)
+	end)
+
+	if not success then
+		return "rbxassetid://" .. tostring(BackupId)
 	else
-		return "rbxassetid://" .. tostring(backupId)
+		return asset
 	end
 end
 
@@ -58,13 +58,22 @@ Crycat.Games = {
 	[70503141143371] = {
 		Name = "Escape Sea Monster For Brainrot",
 		ScriptPath = Crycat.GithubPath("Games/Escape Sea Monster For Brainrot.luau"),
-		Version = 271
+		Version = 271,
+		UpdatedCheckRange = 25 + math.random(0, 50),
+	},
+
+	[13761384151] = {
+		Name = "Guts & Blackpowder",
+		ScriptPath = Crycat.GithubPath("Guts & Blackpowder.luau"),
+		Version = 158,
+		UpdatedCheckRange = 3,
 	},
 
 	[1215581239] = {
 		Name = "Doomspire Brickbattle",
 		ScriptPath = Crycat.GithubPath("Doomspire Brickbattle.luau"),
-		Version = 2029
+		Version = 2029,
+		UpdatedCheckRange = 25,
 	},
 }
 
@@ -81,8 +90,75 @@ Crycat.Services = setmetatable({}, {
 	end
 })
 
-Crycat.Entities = {}
-Crycat.Entities.List = {}
+--UI Stuff
+Crycat.UI.GUI = "" --Temporary path to gui
+Crycat.UI.Dragging = false
+
+Crycat.UI.ApplyDrag = function(DraggingInstance: Instance, WhatGetsMovedInstead: Instance)
+	DraggingInstance.InputBegan:Connect(function(Input)
+		if (Input.UserInputType ~= Enum.UserInputType.MouseButton1) and (Input.UserInputType ~= Enum.UserInputType.Touch) then
+			return 
+		end
+
+		local Draggie, HasMovedEnough, MouseDown = WhatGetsMovedInstead or DraggingInstance, false, true
+		local DragStart, StartPos = Input.Position, Draggie.Position
+		local MoveConn, EndConn, ActiveTween
+
+
+		MoveConn = Crycat.Services.UserInputService.InputChanged:Connect(function(MoveInput)
+			if MoveInput.UserInputType == Enum.UserInputType.MouseMovement or MoveInput.UserInputType == Enum.UserInputType.Touch then
+				local Delta = MoveInput.Position - DragStart
+
+				if not HasMovedEnough then
+					if math.abs(Delta.X) > 5 or math.abs(Delta.Y) > 5 then
+						HasMovedEnough = true
+						Crycat.UI.Dragging = true
+					else
+						return
+					end
+				end
+
+				if Crycat.UI.Dragging and MouseDown then
+					local targetPos = UDim2.new(
+						StartPos.X.Scale,
+						StartPos.X.Offset + Delta.X,
+						StartPos.Y.Scale,
+						StartPos.Y.Offset + Delta.Y
+					)
+
+					if ActiveTween then
+						ActiveTween:Cancel()
+					end
+
+					ActiveTween = Crycat.Services.TweenService:Create(
+						Draggie,
+						TweenInfo.new(0.15, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
+						{ Position = targetPos }
+					)
+
+					ActiveTween:Play()
+				end
+			end
+		end)
+
+		EndConn = Crycat.Services.UserInputService.InputEnded:Connect(function(endInput)
+			if (endInput.UserInputType == Enum.UserInputType.MouseButton1) or endInput.UserInputType == Enum.UserInputType.Touch then
+
+				MouseDown = false
+				Crycat.UI.Dragging = false
+				HasMovedEnough = false
+
+				if ActiveTween then
+					ActiveTween:Cancel()
+				end
+
+				if MoveConn then MoveConn:Disconnect() end
+				if EndConn then EndConn:Disconnect() end
+				
+			end
+		end)
+	end)
+end
 
 --Entity Functions
 Crycat.Entities.Add = function(Entity: Instance)
@@ -112,5 +188,16 @@ end
 
 --Variable/s
 Crycat.Executor = select(1, getexecutorname())
+Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
 
+--Etc.
+Crycat.IsGameSupported = function()
+	for i, v in Crycat.Games do
+		if v == game.PlaceId then
+			return true, v
+		end
+	end
+
+	return false, game.PlaceId
+end
 getgenv().Crycat = Crycat
