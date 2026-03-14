@@ -1,5 +1,5 @@
 local Crycat = {}
-Crycat.Version = "0.3.2"
+Crycat.Version = "0.6.2"
 --Tables
 Crycat.UI = {}
 Crycat.Entities = {}
