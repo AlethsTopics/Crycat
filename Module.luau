@@ -6,24 +6,6 @@ Crycat.Entities = {}
 Crycat.Functions = {}
 Crycat.Entities.List = {}
 
---Functions
-Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
-	if not getcustomasset then
-		return "rbxassetid://" .. tostring(BackupId)
-	end
-
-	local success, asset = pcall(function()
-		return getcustomasset(Path)
-	end)
-
-	if not success then
-		return "rbxassetid://" .. tostring(BackupId)
-	else
-		return asset
-	end
-end
-
-
 --Quick Functions
 Crycat.GithubPath = function(path: string)
 	return (string.gsub("https://raw.githubusercontent.com/AlethsTopics/Crycat/refs/heads/main/" .. path, " ", "%%20"))
@@ -50,6 +32,36 @@ Crycat.Discord = function(Code: string, SetClippy: boolean)
 
 	if SetClippy then
 		setclipboard("https://discord.gg/" .. Invite)
+	end
+end
+
+--Functions
+Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
+	if not getcustomasset then
+		return "rbxassetid://" .. tostring(BackupId)
+	end
+
+	local success, asset = pcall(function()
+		return getcustomasset(Path)
+	end)
+
+	if not success then
+		--Try to download it
+		local src = game:HttpGet(Crycat.GithubPath("Assets/".. BackupId .. ".png"))
+		writefile("Crycat/Assets/".. BackupId .. ".png", src)
+	
+
+		local success2, asset2 = pcall(function()
+			return getcustomasset(Path)
+		end)
+		
+		if success2 then
+			return asset2
+		else
+			return "rbxassetid://" .. tostring(BackupId)
+		end
+	else
+		return asset
 	end
 end
 
