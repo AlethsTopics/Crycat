@@ -1,10 +1,15 @@
 local Crycat = {}
-Crycat.Version = "0.6.2"
+Crycat.Version = "0.7.1"
 --Tables
 Crycat.UI = {}
+Crycat.Cache = {}
 Crycat.Entities = {}
 Crycat.Functions = {}
 Crycat.Entities.List = {}
+Crycat.IsMobile = table.find({
+	Enum.Platform.IOS, 
+	Enum.Platform.Android
+}, cloneref(game.UserInputService):GetPlatform())
 
 --Quick Functions
 Crycat.GithubPath = function(path: string)
@@ -23,9 +28,9 @@ Crycat.Discord = function(Code: string, SetClippy: boolean)
 				["Origin"] = "https://discord.com"
 			},
 			Body = cloneref(game.HttpService):JSONEncode({
-			cmd = "INVITE_BROWSER",
-			args = { code = Invite },
-			nonce = cloneref(game.HttpService):GenerateGUID(false)
+				cmd = "INVITE_BROWSER",
+				args = { code = Invite },
+				nonce = cloneref(game.HttpService):GenerateGUID(false)
 			})
 		})
 	end)
@@ -37,60 +42,83 @@ end
 
 --Functions
 Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
-	if not getcustomasset then
-		return "rbxassetid://" .. tostring(BackupId)
+	local Fallback = "rbxassetid://" .. tostring(BackupId)
+
+	if not getcustomasset then 
+		return Fallback 
 	end
 
-	local success, asset = pcall(function()
+	local Success, Asset = pcall(function()
 		return getcustomasset(Path)
 	end)
 
-	if not success then
-		--Try to download it
-		local src = game:HttpGet(Crycat.GithubPath("Assets/".. BackupId .. ".png"))
-		writefile("Crycat/Assets/".. BackupId .. ".png", src)
-	
-
-		local success2, asset2 = pcall(function()
-			return getcustomasset(Path)
-		end)
-		
-		if success2 then
-			return asset2
-		else
-			return "rbxassetid://" .. tostring(BackupId)
-		end
-	else
-		return asset
+	if Success and Asset then
+		return Asset
 	end
-end
 
+
+	pcall(function()
+		if makefolder then pcall(makefolder, "Crycat/Assets") end
+		writefile(Path, (game:HttpGet(Crycat.GithubPath("Assets/" .. BackupId .. ".png"))))
+	end)
+
+	local Success2, Asset2 = pcall(function()
+		return getcustomasset(Path)
+	end)
+
+	if Success2 and Asset2 then
+		return Asset2
+	end
+
+	return Fallback
+end
 --Tables
-Crycat.Games = {
-	[70503141143371] = {
-		Name = "Escape Sea Monster For Brainrot",
-		ScriptPath = Crycat.GithubPath("Games/Escape Sea Monster For Brainrot.luau"),
+Crycat.Games = { --Add  breaking point (?)
+	[4154513353] = {
+		Name = "Booga Booga",
+		ScriptPath = Crycat.GithubPath("Games/Booga Booga.luau"),
+		Version = 25969,
+		UpdatedCheckRange = 100,
+	},
+	
+	[6035872082] = {
+		Name = "Rivals",
+		ScriptPath = Crycat.GithubPath("Games/Rivals.luau"),
+		Version = 849,
+		UpdatedCheckRange = 25,
+	},
+	
+	[187796008] = {
+		Name = "Those Who Remain",
+		ScriptPath = Crycat.GithubPath("Games/Those Who Remain.luau"),
+		Version = 705,
+		UpdatedCheckRange = 25,
+	},
+	
+	[9709614620] = { 
+		Name = "Counter Blox",
+		ScriptPath = Crycat.GithubPath("Games/Counter Blox.luau"),
 		Version = 271,
-		UpdatedCheckRange = 25 + math.random(0, 50),
+		UpdatedCheckRange = 10,
 	},
 
-	[13761384151] = {
+	[4774335835] = {
 		Name = "Quiet Game",
-		ScriptPath = Crycat.GithubPath("Quiet Game.luau"),
+		ScriptPath = Crycat.GithubPath("Games/Quiet Game.luau"),
 		Version = 158,
 		UpdatedCheckRange = 1,
 	},
 
-	[12334109280] = {
+	[4342047058] = {
 		Name = "Guts & Blackpowder",
-		ScriptPath = Crycat.GithubPath("Guts & Blackpowder.luau"),
-		Version = 158,
-		UpdatedCheckRange = 3,
+		ScriptPath = Crycat.GithubPath("Games/Guts & Blackpowder.luau"),
+		Version = 1280,
+		UpdatedCheckRange = 20,
 	},
 
-	[1215581239] = {
+	[495693931] = {
 		Name = "Doomspire Brickbattle",
-		ScriptPath = Crycat.GithubPath("Doomspire Brickbattle.luau"),
+		ScriptPath = Crycat.GithubPath("Games/Doomspire Brickbattle.luau"),
 		Version = 2029,
 		UpdatedCheckRange = 25,
 	},
@@ -112,9 +140,12 @@ Crycat.Services = setmetatable({}, {
 --UI Stuff
 Crycat.UI.GUI = "" --Temporary path to gui
 Crycat.UI.Dragging = false
+Crycat.Cache.CameraType = workspace.CurrentCamera.CameraType
+Crycat.UI.LastRotation = 0
 
 Crycat.UI.ApplyDrag = function(DraggingInstance: Instance, WhatGetsMovedInstead: Instance)
 	DraggingInstance.InputBegan:Connect(function(Input)
+		Crycat.UI.CameraType = workspace.CurrentCamera.CameraType
 		if (Input.UserInputType ~= Enum.UserInputType.MouseButton1) and (Input.UserInputType ~= Enum.UserInputType.Touch) then
 			return 
 		end
@@ -122,7 +153,11 @@ Crycat.UI.ApplyDrag = function(DraggingInstance: Instance, WhatGetsMovedInstead:
 		local Draggie, HasMovedEnough, MouseDown = WhatGetsMovedInstead or DraggingInstance, false, true
 		local DragStart, StartPos = Input.Position, Draggie.Position
 		local MoveConn, EndConn, ActiveTween
-
+		Crycat.UI.LastRotation = workspace.CurrentCamera.CFrame.Rotation
+		
+		if Crycat.IsMobile then
+			workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
+		end
 
 		MoveConn = Crycat.Services.UserInputService.InputChanged:Connect(function(MoveInput)
 			if MoveInput.UserInputType == Enum.UserInputType.MouseMovement or MoveInput.UserInputType == Enum.UserInputType.Touch then
@@ -166,14 +201,18 @@ Crycat.UI.ApplyDrag = function(DraggingInstance: Instance, WhatGetsMovedInstead:
 				MouseDown = false
 				Crycat.UI.Dragging = false
 				HasMovedEnough = false
-
+				if Crycat.IsMobile then
+					workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position) * Crycat.UI.LastRotation
+					workspace.CurrentCamera.CameraType = Crycat.Cache.CameraType
+				end
+				
 				if ActiveTween then
 					ActiveTween:Cancel()
 				end
 
 				if MoveConn then MoveConn:Disconnect() end
 				if EndConn then EndConn:Disconnect() end
-				
+
 			end
 		end)
 	end)
@@ -181,16 +220,16 @@ end
 
 --Entity Functions
 Crycat.Entities.Add = function(Entity: Instance)
-    table.insert(Crycat.Entities.List, Entity)
+	table.insert(Crycat.Entities.List, Entity)
 end
 
 Crycat.Entities.Remove = function(Entity: Instance)
-    for i, v in ipairs(Crycat.Entities.List) do
-        if v == Entity then
-            table.remove(Crycat.Entities.List, i)
-            break
-        end
-    end
+	for i, v in ipairs(Crycat.Entities.List) do
+		if v == Entity then
+			table.remove(Crycat.Entities.List, i)
+			break
+		end
+	end
 end
 
 Crycat.Entities.EntityAdded = function(Entity: Instance, IfStatement, ExpectedResultFromIfStatement)
@@ -211,10 +250,10 @@ Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
 
 --Etc.
 Crycat.IsGameSupported = function()
-	if Crycat.Games[game.PlaceId] then
-		return true, Crycat.Games[game.PlaceId].Name
+	if Crycat.Games[game.GameId] then
+		return true, Crycat.Games[game.GameId].Name
 	else
-		return false, game.PlaceId
+		return false, game.GameId
 	end
 end
 
