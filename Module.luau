@@ -1,5 +1,5 @@
 local Crycat = {}
-Crycat.Version = "0.7.1"
+Crycat.Version = "0.7.5"
 --Tables
 Crycat.UI = {}
 Crycat.Cache = {}
@@ -41,44 +41,84 @@ Crycat.Discord = function(Code: string, SetClippy: boolean)
 end
 
 --Functions
-Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
-	local Fallback = "rbxassetid://" .. tostring(BackupId)
+Crycat.FailedFunctions = {}
+Crycat.Cache.Functions = { 
+	"getgc", "getreg", "getinstances", "getnilinstances", "getcustomasset", 
+	"hookfunction", "getconnections", "gethui", "loadfile", "isfolder", "makefolder", 
+	"delfolder", "cloneref", "compareinstances", "checkcaller", "clonefunction", 
+	"getscriptclosure", "listfiles", "writefile", "readfile", "isfile", 
+	"appendfile", "delfile", "appendfile", "isscriptable", "setscriptable", 
+	"getrawmetatable", "hookmetamethod", "getnamecallmethod", "isreadonly", "setrawmetatable", 
+	"setreadonly", "identifyexecutor", "getexecutorname", "queue_on_teleport", "request",
+	"setclipboard", "getloadedmodules", "getrenv", "getrunningscripts", 
+	"getscripthash", "getsenv", "getfenv", "getfenv", "getfenv",
+}
 
-	if not getcustomasset then 
-		return Fallback 
+do
+	for _, Function in next, Crycat.Cache.Functions do --I will update this check later.
+		if not getgenv()[Function] then
+			Crycat.FailedFunctions[Function] = true
+		end
 	end
-
-	local Success, Asset = pcall(function()
-		return getcustomasset(Path)
-	end)
-
-	if Success and Asset then
-		return Asset
-	end
-
-
-	pcall(function()
-		if makefolder then pcall(makefolder, "Crycat/Assets") end
-		writefile(Path, (game:HttpGet(Crycat.GithubPath("Assets/" .. BackupId .. ".png"))))
-	end)
-
-	local Success2, Asset2 = pcall(function()
-		return getcustomasset(Path)
-	end)
-
-	if Success2 and Asset2 then
-		return Asset2
-	end
-
-	return Fallback
 end
+
+Crycat.Functions.GetInstances = function()
+	if Crycat.FailedFunctions["getinstances"] then
+		return pcall(game.GetInstances, game)
+	else
+		return getinstances()
+	end
+end
+
+Crycat.Functions.GetNilInstances = function()
+	if not Crycat.FailedFunctions["getnilinstances"] then return getnilinstances() end
+	local NilInstances = {}
+	for _, v in next, Crycat.Functions.GetInstances() do
+		if v.Parent == nil then
+			table.insert(NilInstances, v)
+		end
+	end
+
+	return NilInstances
+end
+
+Crycat.Functions.GetAllThreads = function()
+	local Threads = {}
+	for _,v in next, getreg() do
+		if type(v) == "thread" then
+			table.insert(Threads, v)
+		end
+	end
+	
+	return Threads
+end
+
+Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
+	local FallBack = "rbxassetid://" .. BackupId
+	if not getcustomasset then return FallBack end
+
+	if not isfolder("Crycat") then
+		makefolder("Crycat")
+	end
+	if not isfolder("Crycat/Assets") then
+		makefolder("Crycat/Assets")
+	end
+
+	if not isfile(Path) then
+		writefile(Path, game:HttpGet(Crycat.GithubPath("Assets/" .. BackupId .. ".png")))
+	end
+
+	local Work, Asset = pcall(getcustomasset, Path)
+	return Work and Asset or FallBack
+end
+
 --Tables
-Crycat.Games = { --Add  breaking point (?)
-	[4154513353] = {
-		Name = "Booga Booga",
-		ScriptPath = Crycat.GithubPath("Games/Booga Booga.luau"),
-		Version = 25969,
-		UpdatedCheckRange = 100,
+Crycat.Games = {
+	[-1] = {
+		Name = "Build a boat",
+		ScriptPath = Crycat.GithubPath("Games/Build a boat.luau"),
+		Version = -1,
+		UpdatedCheckRange = -1,
 	},
 	
 	[6035872082] = {
@@ -95,13 +135,6 @@ Crycat.Games = { --Add  breaking point (?)
 		UpdatedCheckRange = 25,
 	},
 	
-	[9709614620] = { 
-		Name = "Counter Blox",
-		ScriptPath = Crycat.GithubPath("Games/Counter Blox.luau"),
-		Version = 271,
-		UpdatedCheckRange = 10,
-	},
-
 	[4774335835] = {
 		Name = "Quiet Game",
 		ScriptPath = Crycat.GithubPath("Games/Quiet Game.luau"),
@@ -140,6 +173,7 @@ Crycat.Services = setmetatable({}, {
 --UI Stuff
 Crycat.UI.GUI = "" --Temporary path to gui
 Crycat.UI.Dragging = false
+Crycat.UI.ModuleUI = ""
 Crycat.Cache.CameraType = workspace.CurrentCamera.CameraType
 Crycat.UI.LastRotation = 0
 
