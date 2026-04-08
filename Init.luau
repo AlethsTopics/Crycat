@@ -1518,4 +1518,4 @@ local script = G2L["2"];
 end;
 task.spawn(C_2);
 
-return Crycat.UI.ModuleUI
+return Crycat.UI.ModuleUI, Crycat
