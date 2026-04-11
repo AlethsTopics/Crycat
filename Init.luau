@@ -1515,6 +1515,10 @@ local script = G2L["2"];
 	--Drag it!
 	Crycat.UI.ApplyDrag(ImageButton, Toggle)
 	Crycat.UI.ApplyDrag(Crycat.UI.GUI.Shadow.MainFrame.TopHeading, Crycat.UI.GUI.Shadow)
+
+	--Load it!!
+
+	loadstring(Crycat.Games[game.GameId].ScriptPath)()
 end;
 task.spawn(C_2);
 
