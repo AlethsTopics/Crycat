@@ -1,5 +1,3 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/AlethsTopics/Crycat/refs/heads/main/Module.luau"))()
----------------------------------------------------------------------------------------------------------------
 -- Instances: 28 | Scripts: 2 | Modules: 0 | Tags: 0
 local G2L = {};
 
@@ -1515,10 +1513,6 @@ local script = G2L["2"];
 	--Drag it!
 	Crycat.UI.ApplyDrag(ImageButton, Toggle)
 	Crycat.UI.ApplyDrag(Crycat.UI.GUI.Shadow.MainFrame.TopHeading, Crycat.UI.GUI.Shadow)
-
-	--Load it!!
-
-	loadstring(Crycat.Games[game.GameId].ScriptPath)()
 end;
 task.spawn(C_2);
 
