@@ -1,5 +1,5 @@
 local Crycat = {}
-Crycat.Version = "0.7.5"
+Crycat.Version = "0.7.7"
 --Tables
 Crycat.UI = {}
 Crycat.Cache = {}
@@ -41,37 +41,89 @@ Crycat.Discord = function(Code: string, SetClippy: boolean)
 end
 
 --Functions
-Crycat.FailedFunctions = {}
-Crycat.Cache.Functions = { 
-	"getgc", "getreg", "getinstances", "getnilinstances", "getcustomasset", 
-	"hookfunction", "getconnections", "gethui", "loadfile", "isfolder", "makefolder", 
-	"delfolder", "cloneref", "compareinstances", "checkcaller", "clonefunction", 
-	"getscriptclosure", "listfiles", "writefile", "readfile", "isfile", 
-	"appendfile", "delfile", "appendfile", "isscriptable", "setscriptable", 
-	"getrawmetatable", "hookmetamethod", "getnamecallmethod", "isreadonly", "setrawmetatable", 
-	"setreadonly", "identifyexecutor", "getexecutorname", "queue_on_teleport", "request",
-	"setclipboard", "getloadedmodules", "getrenv", "getrunningscripts", 
-	"getscripthash", "getsenv", "getfenv", "getfenv", "getfenv",
-}
+Crycat.Functions.GetGC = getgc
+Crycat.Functions.GetRegistry = getreg
+Crycat.Functions.GetScriptFromThread = getscriptfromthread
+Crycat.Functions.GetHiddenProperty = gethiddenproperty
+Crycat.Functions.HookFunction = hookfunction
+Crycat.Functions.ReplicateSignal = replicatesignal
+Crycat.Functions.GetConnections = getconnections
+Crycat.Functions.GetHiddenUI = gethui
+Crycat.Functions.Cloneref = cloneref --Possible to remake in luau
+Crycat.Functions.CompareInstances = compareinstances --Possible to remake in luau
+Crycat.Functions.CheckCaller = checkcaller
+Crycat.Functions.CloneFunction = clonefunction --Possible to remake in luau (?)
+Crycat.Functions.GetScriptClosure = getscriptclosure
+Crycat.Functions.SetScriptable = SetScriptable
+Crycat.Functions.GetRawMetatable = getrawmetatable
+Crycat.Functions.HookMetaMethod = hookmetamethod
+Crycat.Functions.GetExecutorName = getexecutorname or identifyexecutor
+Crycat.Functions.GetNamecallMethod = getnamecallmethod --https://github.com/strawbberrys/getnamecallmethod
+Crycat.Functions.GetScriptHash = getscripthash
+Crycat.Functions.GetSenv = getsenv
+Crycat.Functions.GetRenv = getrenv
+--File system
+Crycat.Functions.ReadFile = readfile
+Crycat.Functions.WriteFile = writefile
+Crycat.Functions.AppendFile = appendfile
+Crycat.Functions.DelFile = delfile
+Crycat.Functions.DelFolder = delfolder
+Crycat.Functions.MakeFolder = makefolder
+Crycat.Functions.IsFolder = isfolder
+Crycat.Functions.IsFile = isfile
+Crycat.Functions.LoadFile = loadfile
+Crycat.Functions.ListFiles = listfiles
+--
+Crycat.Functions.IsReadOnly = isreadonly or table.isfrozen --Possible to remake in luau
+Crycat.Functions.GetLoadedModules = getloadedmodules
+Crycat.Functions.SetReadOnly = setreadonly or table.freeze
+Crycat.Functions.SetRawMetatable = setrawmetatable
+Crycat.Functions.QueueOnTeleport = queue_on_teleport
+Crycat.Functions.Request = request --Possible to remake in luau
 
-do
-	for _, Function in next, Crycat.Cache.Functions do --I will update this check later.
-		if not getgenv()[Function] then
-			Crycat.FailedFunctions[Function] = true
-		end
-	end
+Crycat.Functions.IsScriptable = isscriptable or function(self, prop)
+	local s = pcall(function()
+		self[prop] = self[prop]
+	end)
+	return s
 end
 
-Crycat.Functions.GetInstances = function()
-	if Crycat.FailedFunctions["getinstances"] then
-		return pcall(game.GetInstances, game)
-	else
-		return getinstances()
+Crycat.Functions.SetClipboard = setclipboard or function(data)
+	local ClipboardBox = game.CoreGui.RobloxGui.Backpack.Inventory.Search.TextBox
+	local VirtualInputManager = cloneref(game:GetService("VirtualInputManager"))
+	ClipboardBox:CaptureFocus()
+	ClipboardBox.Text = data
+
+	local KeyCode = Enum.KeyCode
+	local Keys = {KeyCode.RightControl, KeyCode.A}
+	local Keys2 = {KeyCode.RightControl, KeyCode.C, KeyCode.V}
+
+	for _, v in ipairs(Keys) do
+		VirtualInputManager:SendKeyEvent(true, v, false, game)
+		task.wait()
 	end
+	for _, v in ipairs(Keys) do
+		VirtualInputManager:SendKeyEvent(false, v, false, game)
+		task.wait()
+	end
+	for _, v in ipairs(Keys2) do
+		VirtualInputManager:SendKeyEvent(true, v, false, game)
+		task.wait()
+	end
+	for _, v in ipairs(Keys2) do
+		VirtualInputManager:SendKeyEvent(false, v, false, game)
+		task.wait()
+	end
+	ClipboardBox.Text = ''
+	ClipboardBox:ReleaseFocus()
+	return
 end
 
-Crycat.Functions.GetNilInstances = function()
-	if not Crycat.FailedFunctions["getnilinstances"] then return getnilinstances() end
+Crycat.Functions.GetInstances = getinstances or function()
+	return pcall(game.GetInstances, game)
+end
+
+Crycat.Functions.GetNilInstances = getnilinstances or function()
 	local NilInstances = {}
 	for _, v in next, Crycat.Functions.GetInstances() do
 		if v.Parent == nil then
@@ -82,16 +134,45 @@ Crycat.Functions.GetNilInstances = function()
 	return NilInstances
 end
 
-Crycat.Functions.GetAllThreads = function()
-	local Threads = {}
-	for _,v in next, getreg() do
-		if type(v) == "thread" then
-			table.insert(Threads, v)
+Crycat.Functions.GetScripts = function()
+	local Scripts = {}
+	for _, v in next, Crycat.Function.GetInstances() do
+		if v.ClassName == "Script" or v.ClassName == "LocalScript" then
+			table.insert(Scripts, v)
 		end
 	end
-	
-	return Threads
+	for _,v in next, Crycat.Functions.GetNilInstances() do
+		if v.ClassName == "Script" or v.ClassName == "LocalScript" then
+			table.insert(Scripts, v)
+		end
+	end
+	return Scripts
 end
+
+Crycat.Functions.GetRunningScripts = getrunningscripts or function()
+	local Scripts = {}
+	for _, v in next, Crycat.Functions.GetScripts() do
+		if v.Enabled then
+			table.insert(Scripts, v)
+		end
+	end
+	return Scripts
+end
+--
+
+if Crycat.Functions.GetRegistry then
+	Crycat.Functions.GetAllThreads = function()
+		local Threads = {}
+		for _,v in next, Crycat.Functions.GetRegistry() do
+			if type(v) == "thread" then
+				table.insert(Threads, v)
+			end
+		end
+		
+		return Threads
+	end
+end
+
 
 Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
 	local FallBack = "rbxassetid://" .. BackupId
@@ -110,6 +191,39 @@ Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
 
 	local Work, Asset = pcall(getcustomasset, Path)
 	return Work and Asset or FallBack
+end
+
+Crycat.Functions.DisableConnections = function(Signal, Index)
+	local Connections = Crycat.Functions.GetConnections(Signal)
+
+	if Index then
+		local Connection = Connections[Index]
+		if Connection then
+			Connection:Disconnect()
+		end
+		return
+	end
+
+	for _, Connection in next, Connections do
+		Connection:Disconnect()
+	end
+end
+
+
+Crycat.Functions.FireConnections = function(Signal, Index)
+	local Connections = Crycat.Functions.GetConnections(Signal)
+
+	if Index then
+		local Connection = Connections[Index]
+		if Connection then
+			Connection:Fire()
+		end
+		return
+	end
+
+	for _, Connection in next, Connections do
+		Connection:Fire()
+	end
 end
 
 --Tables
@@ -152,8 +266,8 @@ Crycat.Games = {
 	[495693931] = {
 		Name = "Doomspire Brickbattle",
 		ScriptPath = Crycat.GithubPath("Games/Doomspire Brickbattle.luau"),
-		Version = 2029,
-		UpdatedCheckRange = 25,
+		Version = 2036,
+		UpdatedCheckRange = 10,
 	},
 }
 
@@ -279,7 +393,7 @@ Crycat.Entities.EntityRemoved = function(Entity: Instance, IfStatement, Expected
 end
 
 --Variable/s
-Crycat.Executor = select(1, getexecutorname())
+Crycat.Executor = select(1, Crycat.Functions.GetExecutorName())
 Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
 
 --Etc.
