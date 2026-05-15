@@ -1,15 +1,30 @@
 local Crycat = {}
-Crycat.Version = "0.7.7"
+local cloneref = cloneref or function(...) 
+	return ... 
+end --^Real
+Crycat.Version = "0.7.8"
 --Tables
 Crycat.UI = {}
 Crycat.Cache = {}
 Crycat.Entities = {}
 Crycat.Functions = {}
 Crycat.Entities.List = {}
+Crycat.Services = setmetatable({}, {
+	__index = function(self, name)
+		local success, cache = pcall(function()
+			return cloneref(game:GetService(name))
+		end)
+
+		if success then
+			rawset(self, name, cache)
+			return cache
+		end
+	end
+})
 Crycat.IsMobile = table.find({
 	Enum.Platform.IOS, 
 	Enum.Platform.Android
-}, cloneref(game.UserInputService):GetPlatform())
+}, Crycat.Services.UserInputService:GetPlatform())
 
 --Quick Functions
 Crycat.GithubPath = function(path: string)
@@ -27,10 +42,10 @@ Crycat.Discord = function(Code: string, SetClippy: boolean)
 				["Content-Type"] = "application/json",
 				["Origin"] = "https://discord.com"
 			},
-			Body = cloneref(game.HttpService):JSONEncode({
+			Body = Crycat.Services.HttpService:JSONEncode({
 				cmd = "INVITE_BROWSER",
 				args = { code = Invite },
-				nonce = cloneref(game.HttpService):GenerateGUID(false)
+				nonce = Crycat.Services.HttpService:GenerateGUID(false)
 			})
 		})
 	end)
@@ -40,7 +55,7 @@ Crycat.Discord = function(Code: string, SetClippy: boolean)
 	end
 end
 
---Functions
+--Functions | I could not think of a better way to add this.
 Crycat.Functions.GetGC = getgc
 Crycat.Functions.GetRegistry = getreg
 Crycat.Functions.GetScriptFromThread = getscriptfromthread
@@ -90,7 +105,7 @@ end
 
 Crycat.Functions.SetClipboard = setclipboard or function(data)
 	local ClipboardBox = game.CoreGui.RobloxGui.Backpack.Inventory.Search.TextBox
-	local VirtualInputManager = cloneref(game:GetService("VirtualInputManager"))
+	local VirtualInputManager = Crycat.Services.VirtualInputManager
 	ClipboardBox:CaptureFocus()
 	ClipboardBox.Text = data
 
@@ -209,7 +224,6 @@ Crycat.Functions.DisableConnections = function(Signal, Index)
 	end
 end
 
-
 Crycat.Functions.FireConnections = function(Signal, Index)
 	local Connections = Crycat.Functions.GetConnections(Signal)
 
@@ -224,6 +238,10 @@ Crycat.Functions.FireConnections = function(Signal, Index)
 	for _, Connection in next, Connections do
 		Connection:Fire()
 	end
+end
+
+Crycat.FastLoop = function(ElScripo)
+	Crycat.Services.RunService.Heartbeat:Connect(ElScripo)
 end
 
 --Tables
@@ -270,19 +288,6 @@ Crycat.Games = {
 		UpdatedCheckRange = 10,
 	},
 }
-
-Crycat.Services = setmetatable({}, {
-	__index = function(self, name)
-		local success, cache = pcall(function()
-			return cloneref(game:GetService(name))
-		end)
-
-		if success then
-			rawset(self, name, cache)
-			return cache
-		end
-	end
-})
 
 --UI Stuff
 Crycat.UI.GUI = "" --Temporary path to gui
@@ -395,6 +400,7 @@ end
 --Variable/s
 Crycat.Executor = select(1, Crycat.Functions.GetExecutorName())
 Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
+Crycat.ModuleLoaded = true
 
 --Etc.
 Crycat.IsGameSupported = function()
