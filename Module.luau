@@ -241,7 +241,12 @@ Crycat.Functions.FireConnections = function(Signal, Index)
 end
 
 Crycat.ToType = function(Value)
-	local lower = Value.Name:lower()
+	local lower = ""
+	if type(Value) == "userdata" then
+		lower = Value.Name:lower()
+	else
+		lower = tostring(Value):lower()
+	end
 
 	if lower == "true" then
 		return true
@@ -257,23 +262,29 @@ Crycat.ToType = function(Value)
 	return Value
 end
 
-
 Crycat.Functions.AddConnection = function(Signal, Function)
 	return (Signal:Connect(Function))
 end
 
 Crycat.Cache.GetValue = function(ValueName)
-	if Crycat.Cache[ValueName] then
-		return Crycat.ToType(Crycat.Cache[ValueName].Name)
+	local obj = Crycat.Cache[ValueName]
+	if obj then
+		return Crycat.ToType(obj.Value)
 	end
+	return "Not found"
 end
 
 Crycat.Cache.SetValue = function(ValueName, Value)
-	if Crycat.Cache[ValueName] then
-		Crycat.Cache[ValueName].Name = tostring(Value)
+	local obj = Crycat.Cache[ValueName]
+
+	if obj then
+		obj.Value = tostring(Value)
 	else
-		local ValueObject = Instance.new("StringValue", game.CoreGui)
-		ValueObject.Name = tostring(Value)
+		local ValueObject = Instance.new("StringValue")
+		ValueObject.Name = ValueName
+		ValueObject.Value = tostring(Value)
+		ValueObject.Parent = game.CoreGui
+
 		Crycat.Cache[ValueName] = ValueObject
 	end
 end
