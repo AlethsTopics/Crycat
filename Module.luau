@@ -296,20 +296,6 @@ end
 
 --Tables
 Crycat.Games = {
-	[-1] = {
-		Name = "Build a boat",
-		ScriptPath = Crycat.GithubPath("Games/Build a boat.luau"),
-		Version = -1,
-		UpdatedCheckRange = -1,
-	},
-	
-	[6035872082] = {
-		Name = "Rivals",
-		ScriptPath = Crycat.GithubPath("Games/Rivals.luau"),
-		Version = 849,
-		UpdatedCheckRange = 25,
-	},
-	
 	[187796008] = {
 		Name = "Those Who Remain",
 		ScriptPath = Crycat.GithubPath("Games/Those Who Remain.luau"),
@@ -343,7 +329,7 @@ Crycat.Games = {
 Crycat.UI.GUI = "" --Temporary path to gui
 Crycat.UI.Dragging = false
 Crycat.UI.ModuleUI = ""
-Crycat.Cache.CameraType = workspace.CurrentCamera.CameraType
+Crycat.UI.CameraType = workspace.CurrentCamera.CameraType
 Crycat.UI.LastRotation = 0
 
 Crycat.UI.ApplyDrag = function(DraggingInstance: Instance, WhatGetsMovedInstead: Instance)
@@ -406,7 +392,7 @@ Crycat.UI.ApplyDrag = function(DraggingInstance: Instance, WhatGetsMovedInstead:
 				HasMovedEnough = false
 				if Crycat.IsMobile then
 					workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position) * Crycat.UI.LastRotation
-					workspace.CurrentCamera.CameraType = Crycat.Cache.CameraType
+					workspace.CurrentCamera.CameraType = Crycat.UI.CameraType
 				end
 				
 				if ActiveTween then
@@ -464,8 +450,12 @@ end
 local VirtualInputManager = Instance.new("VirtualInputManager")
 Crycat.Click = function(x, y)
 	if not x or not y then x = 0 y = 0 end
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, nil, 0)
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, nil, 0)
+	if not mouse1click then
+		VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, nil, 0)
+		VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, nil, 0)
+	else
+		mouse1click(x, y)
+	end
 end
 
 getgenv().Crycat = Crycat
