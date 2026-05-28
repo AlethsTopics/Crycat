@@ -461,4 +461,11 @@ Crycat.IsGameSupported = function()
 	end
 end
 
+local VirtualInputManager = Instance.new("VirtualInputManager")
+Crycat.Click = function(x, y)
+	if not x or not y then x = 0 y = 0 end
+	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, nil, 0)
+	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, nil, 0)
+end
+
 getgenv().Crycat = Crycat
