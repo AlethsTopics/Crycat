@@ -240,8 +240,8 @@ Crycat.Functions.FireConnections = function(Signal, Index)
 	end
 end
 
-Crycat.ToType = function(Value : string)
-	local lower = Value:lower()
+Crycat.ToType = function(Value)
+	local lower = Value.Name:lower()
 
 	if lower == "true" then
 		return true
