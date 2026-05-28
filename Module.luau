@@ -2,7 +2,7 @@ local Crycat = {}
 local cloneref = cloneref or function(...) 
 	return ... 
 end --^Real
-Crycat.Version = "0.7.8"
+Crycat.Version = "0.7.9"
 --Tables
 Crycat.UI = {}
 Crycat.Cache = {}
@@ -240,9 +240,48 @@ Crycat.Functions.FireConnections = function(Signal, Index)
 	end
 end
 
+Crycat.ToType = function(Value : string)
+	local lower = Value:lower()
+
+	if lower == "true" then
+		return true
+	elseif lower == "false" then
+		return false
+	end
+
+	local num = tonumber(Value)
+	if num ~= nil then
+		return num
+	end
+
+	return Value
+end
+
+
+Crycat.Functions.AddConnection = function(Signal, Function)
+	return (Signal:Connect(Function))
+end
+
+Crycat.Cache.GetValue = function(ValueName)
+	if Crycat.Cache[ValueName] then
+		return Crycat.ToType(Crycat.Cache[ValueName].Name)
+	end
+end
+
+Crycat.Cache.SetValue = function(ValueName, Value)
+	if Crycat.Cache[ValueName] then
+		Crycat.Cache[ValueName].Name = Value
+	else
+		local ValueObject = Instance.new("StringValue", game.CoreGui)
+		ValueObject.Name = ValueName
+		Crycat.Cache[ValueName] = ValueObject
+	end
+end
+
 Crycat.FastLoop = function(ElScripo)
 	Crycat.Services.RunService.Heartbeat:Connect(ElScripo)
 end
+
 
 --Tables
 Crycat.Games = {
