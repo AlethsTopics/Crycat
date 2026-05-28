@@ -270,10 +270,10 @@ end
 
 Crycat.Cache.SetValue = function(ValueName, Value)
 	if Crycat.Cache[ValueName] then
-		Crycat.Cache[ValueName].Name = Value
+		Crycat.Cache[ValueName].Name = tostring(Value)
 	else
 		local ValueObject = Instance.new("StringValue", game.CoreGui)
-		ValueObject.Name = ValueName
+		ValueObject.Name = tostring(Value)
 		Crycat.Cache[ValueName] = ValueObject
 	end
 end
