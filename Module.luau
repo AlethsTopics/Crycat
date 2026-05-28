@@ -61,6 +61,7 @@ Crycat.Functions.GetRegistry = getreg
 Crycat.Functions.GetScriptFromThread = getscriptfromthread
 Crycat.Functions.GetHiddenProperty = gethiddenproperty
 Crycat.Functions.HookFunction = hookfunction
+Crycat.Functions.FireSignal = firesignal
 Crycat.Functions.ReplicateSignal = replicatesignal
 Crycat.Functions.GetConnections = getconnections
 Crycat.Functions.GetHiddenUI = gethui
@@ -188,7 +189,6 @@ if Crycat.Functions.GetRegistry then
 	end
 end
 
-
 Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
 	local FallBack = "rbxassetid://" .. BackupId
 	if not getcustomasset then return FallBack end
@@ -269,20 +269,20 @@ end
 Crycat.Cache.GetValue = function(ValueName)
 	local obj = Crycat.Cache[ValueName]
 	if obj then
-		return Crycat.ToType(obj.Value)
+		return obj.Value
 	end
-	return "Not found"
+	return nil
 end
 
-Crycat.Cache.SetValue = function(ValueName, Value)
+Crycat.Cache.SetValue = function(ValueName, Value, Type)
 	local obj = Crycat.Cache[ValueName]
 
 	if obj then
-		obj.Value = tostring(Value)
+		obj.Value = Value
 	else
-		local ValueObject = Instance.new("StringValue")
+		local ValueObject = Instance.new(Type .. "Value")
 		ValueObject.Name = ValueName
-		ValueObject.Value = tostring(Value)
+		ValueObject.Value = Value
 		ValueObject.Parent = game.CoreGui
 
 		Crycat.Cache[ValueName] = ValueObject
