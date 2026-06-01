@@ -56,6 +56,8 @@ Crycat.Discord = function(Code: string, SetClippy: boolean)
 end
 
 --Functions | I could not think of a better way to add this.
+Crycat.Functions.Base64Encode = base64encode or base64.encode
+Crycat.Functions.Base64Decode = base64decode or base64.decode
 Crycat.Functions.GetGC = getgc
 Crycat.Functions.GetRegistry = getreg
 Crycat.Functions.GetScriptFromThread = getscriptfromthread
@@ -201,7 +203,7 @@ Crycat.Functions.GetCustomAsset = function(Path: string, BackupId: number)
 	end
 
 	if not isfile(Path) then
-		writefile(Path, game:HttpGet(Crycat.GithubPath("Assets/" .. BackupId .. ".png")))
+		writefile(Path, game:HttpGet(Crycat.GithubPath("Assets/" .. BackupId .. ".png"))) --I should fix this?... nah :)
 	end
 
 	local Work, Asset = pcall(getcustomasset, Path)
@@ -437,7 +439,6 @@ end
 Crycat.Executor = select(1, Crycat.Functions.GetExecutorName())
 Crycat.LocalPlayer = Crycat.Services.Players.LocalPlayer
 Crycat.ModuleLoaded = true
-
 --Etc.
 Crycat.IsGameSupported = function()
 	if Crycat.Games[game.GameId] then
@@ -452,10 +453,31 @@ Crycat.Click = function(x, y)
 	if not x or not y then x = 0 y = 0 end
 	if not mouse1click then
 		VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, nil, 0)
+		VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, nil, 0)
+		VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, nil, 0)
 		VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, nil, 0)
 	else
-		mouse1click(x, y)
+		if mousemoveabs then
+			local OldX, OldY = Crycat.Services.UserInputService:GetMouseLocation().X, Crycat.Services.UserInputService:GetMouseLocation().Y
+			mousemoveabs(x, y)
+			mouse1click(x, y)
+			wait(0.1)
+			mousemoveabs(OldX, OldY)
+		end
 	end
+end
+
+Crycat.IsEnvLogger = function() --Hm... I see you :)
+	local NoSound
+	local IsItOne = pcall(function()
+		NoSound = Instance.new("Sound")
+		NoSound.SoundId = getcustomasset("rTqYRWcA-Yw.m4a")
+		NoSound.IsLoaded:Wait()
+		return true
+	end)
+	--
+	NoSound:Destroy()
+	return IsItOne --Hm.. is it?
 end
 
 getgenv().Crycat = Crycat
