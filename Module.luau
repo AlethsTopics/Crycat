@@ -467,17 +467,4 @@ Crycat.Click = function(x, y)
 	end
 end
 
-Crycat.IsEnvLogger = function() --Hm... I see you :)
-	local NoSound
-	local IsItOne = pcall(function()
-		NoSound = Instance.new("Sound")
-		NoSound.SoundId = getcustomasset("rTqYRWcA-Yw.m4a")
-		NoSound.IsLoaded:Wait()
-		return true
-	end)
-	--
-	NoSound:Destroy()
-	return IsItOne --Hm.. is it?
-end
-
 getgenv().Crycat = Crycat
